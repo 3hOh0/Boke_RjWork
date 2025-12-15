@@ -1,0 +1,277 @@
+/* Modern Minimal Design System for DjangoBlog Interaction */
+
+:root {
+    --primary-color: #0d6efd;
+    --primary-hover: #0b5ed7;
+    --text-main: #333333;
+    --text-muted: #666666;
+    --text-aux: #999999;
+    --border-color: #f0f0f0;
+    /* Keeping light gray */
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --card-hover-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    /* Stronger shadow on hover */
+    --bg-light: #f8f9fa;
+    --bg-white: #ffffff;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --spacing-margin: 24px;
+    --spacing-padding: 20px;
+}
+
+/* Typography & Layout */
+body {
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+.fw-medium {
+    font-weight: 500 !important;
+}
+
+.fw-semibold {
+    font-weight: 600 !important;
+}
+
+.extra-small {
+    font-size: 0.75rem;
+}
+
+.w-20 {
+    width: 20px;
+    text-align: center;
+}
+
+/* Card Styling */
+.collection-card {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    /* #eee equivalent */
+    background-color: var(--bg-white);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    padding: var(--spacing-padding);
+    margin-bottom: var(--spacing-margin);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.collection-card:hover,
+.shadow-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-hover-shadow) !important;
+}
+
+.card-title-custom {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-main);
+}
+
+.card-desc-custom {
+    font-size: 15px;
+    color: #555555;
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.card-meta-custom {
+    font-size: 13px;
+    color: #888888;
+}
+
+/* Utilities */
+.description-truncate {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.border-bottom-dashed {
+    border-bottom: 1px dashed #e0e0e0;
+}
+
+.last-no-border:last-child {
+    border-bottom: none;
+}
+
+.hover-danger {
+    transition: color 0.15s ease;
+}
+
+.hover-danger:hover {
+    color: #dc3545 !important;
+}
+
+/* Article List Preview */
+.article-preview-list {
+    background-color: var(--bg-light);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    margin-top: 12px;
+}
+
+.article-item {
+    transition: background-color 0.15s ease;
+    padding: 8px 0;
+}
+
+.article-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.article-title-link {
+    font-weight: 500;
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.article-title-link:hover {
+    color: var(--primary-color);
+}
+
+/* Dropdown Tweaks */
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    color: var(--text-main);
+}
+
+.dropdown-item:hover {
+    background-color: var(--bg-light);
+    color: var(--primary-color);
+}
+
+.dropdown-item.text-danger:hover {
+    background-color: #fff5f5;
+    color: #dc3545;
+}
+
+/* Empty State */
+.empty-state-card {
+    border: 2px dashed #e9ecef;
+    background-color: #f8f9fa;
+    padding: 2rem;
+    text-align: center;
+    border-radius: var(--radius-md);
+}
+
+/* Animation & Z-Index Utilities */
+.transition-all {
+    transition: all 0.2s ease-in-out;
+}
+
+.z-index-10 {
+    z-index: 10;
+}
+
+/* Specific List Item Styling */
+.list-group-item.active {
+    background: linear-gradient(135deg, var(--primary-color), #0a58ca);
+    border-color: transparent;
+}
+
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-hover-shadow) !important;
+}
+
+/* Public Collection Specifics */
+.public-badge {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: var(--primary-color);
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+/* Strict Layout Components */
+.collection-card {
+    position: relative !important;
+    /* Ensure absolute children position relative to this container */
+    overflow: visible;
+    /* Allow dropdowns to spill out if needed, though they usually use popper */
+}
+
+.collection-header {
+    position: relative;
+    /* Anchor for specificity */
+    margin-bottom: 16px;
+    padding-right: 100px;
+    /* Prevent title from overlapping with absolute actions */
+    display: block;
+    /* Flex not needed for title flow anymore */
+}
+
+.collection-body {
+    margin-bottom: 16px;
+    flex-grow: 1;
+}
+
+.collection-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: #888;
+    margin-top: auto;
+}
+
+.collection-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    /* Tight gap as requested */
+    z-index: 10;
+}
+
+.collection-actions .btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    text-decoration: none;
+}
+
+/* Article List Item Refinements */
+.article-item {
+    display: flex;
+    justify-content: space-between;
+    /* Strictly space between */
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #eee;
+}
+
+.article-item:last-child {
+    border-bottom: none;
+}
+
+.article-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-right: 16px;
+    /* Spacing from action */
+}
+
+.article-action {
+    flex-shrink: 0;
+}

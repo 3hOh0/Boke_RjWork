@@ -61,7 +61,8 @@ INSTALLED_APPS = [
     'servermanager',
     'owntracks',
     'compressor',
-    'djangoblog'
+    'djangoblog',
+    'interaction',
 ]
 
 MIDDLEWARE = [
@@ -111,7 +112,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('DJANGO_MYSQL_DATABASE') or 'djangoblog',
         'USER': os.environ.get('DJANGO_MYSQL_USER') or 'root',
-        'PASSWORD': os.environ.get('DJANGO_MYSQL_PASSWORD') or 'root',
+        'PASSWORD': os.environ.get('DJANGO_MYSQL_PASSWORD') or '123456',
         'HOST': os.environ.get('DJANGO_MYSQL_HOST') or '127.0.0.1',
         'PORT': int(
             os.environ.get('DJANGO_MYSQL_PORT') or 3306),
@@ -216,7 +217,7 @@ if os.environ.get("DJANGO_REDIS_URL"):
 
 SITE_ID = 1
 BAIDU_NOTIFY_URL = os.environ.get('DJANGO_BAIDU_NOTIFY_URL') \
-                   or 'http://data.zz.baidu.com/urls?site=https://www.lylinux.net&token=1uAOGrMsUm5syDGn'
+    or 'http://data.zz.baidu.com/urls?site=https://www.lylinux.net&token=1uAOGrMsUm5syDGn'
 
 # Email:
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -302,7 +303,8 @@ STATICFILES_FINDERS = (
 )
 COMPRESS_ENABLED = True
 # 根据环境变量决定是否启用离线压缩
-COMPRESS_OFFLINE = os.environ.get('COMPRESS_OFFLINE', 'False').lower() == 'true'
+COMPRESS_OFFLINE = os.environ.get(
+    'COMPRESS_OFFLINE', 'False').lower() == 'true'
 
 # 压缩输出目录
 COMPRESS_OUTPUT_DIR = 'compressed'
@@ -357,7 +359,6 @@ MEDIA_URL = '/media/'
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 if os.environ.get('DJANGO_ELASTICSEARCH_HOST'):
@@ -383,4 +384,3 @@ ACTIVE_PLUGINS = [
     'image_lazy_loading',
     'article_recommendation',
 ]
-

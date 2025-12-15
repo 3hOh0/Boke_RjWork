@@ -53,6 +53,7 @@ def health_check(request):
         'timestamp': time.time()
     })
 
+
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('health/', health_check, name='health_check'),
@@ -71,8 +72,9 @@ urlpatterns += i18n_patterns(
     re_path('^search', search_view_factory(view_class=EsSearchView, form_class=ElasticSearchModelSearchForm),
             name='search'),
     re_path(r'', include('servermanager.urls', namespace='servermanager')),
-    re_path(r'', include('owntracks.urls', namespace='owntracks'))
-    , prefix_default_language=False) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    re_path(r'', include('owntracks.urls', namespace='owntracks')),
+    re_path(r'^interaction/', include('interaction.urls', namespace='interaction')),
+    re_path(r'^dashboard/', include('dashboard.urls', namespace='dashboard')), prefix_default_language=False) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,
                           document_root=settings.MEDIA_ROOT)

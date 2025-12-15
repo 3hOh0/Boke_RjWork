@@ -1,0 +1,74 @@
+{% extends "dashboard/pages/base_page.html" %}
+{% load static %}
+
+{% block nav_content %}active{% endblock %}
+
+{% block page_content %}
+<h3 class="mb-4" style="color: white; font-weight: 700;">📝 内容分析</h3>
+
+<div class="row g-4">
+  <!-- 文章发布趋势 -->
+  <div class="col-lg-6">
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <h5 class="stat-card-title">
+          <span class="stat-card-icon" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">📈</span>
+          文章发布趋势
+        </h5>
+        <select id="trend-range-select" class="form-select form-select-sm" style="width: 120px;">
+          <option value="7">近7天</option>
+          <option value="30">近30天</option>
+        </select>
+      </div>
+      <div class="chart-container" style="height: 300px;">
+        <canvas id="trend-chart"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 分类分布 -->
+  <div class="col-lg-6">
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <h5 class="stat-card-title">
+          <span class="stat-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white;">📊</span>
+          分类分布
+        </h5>
+      </div>
+      <div class="chart-container" style="height: 300px;">
+        <canvas id="category-chart"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 标签分布 -->
+  <div class="col-12">
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <h5 class="stat-card-title">
+          <span class="stat-card-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">🏷️</span>
+          热门标签 TOP10
+        </h5>
+      </div>
+      <div class="chart-container" style="height: 300px;">
+        <canvas id="tag-chart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'dashboard/charts_pages.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  loadTrendChart();
+  loadCategoryChart();
+  loadTagChart();
+  
+  document.getElementById("trend-range-select").addEventListener("change", (e) => {
+    loadTrendChart(parseInt(e.target.value, 10));
+  });
+});
+</script>
+{% endblock %}

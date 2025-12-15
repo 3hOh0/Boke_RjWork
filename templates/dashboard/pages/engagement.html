@@ -1,0 +1,90 @@
+{% extends "dashboard/pages/base_page.html" %}
+{% load static %}
+
+{% block nav_engagement %}active{% endblock %}
+
+{% block page_content %}
+<h3 class="mb-4" style="color: white; font-weight: 700;">💬 用户互动分析</h3>
+
+<div class="row g-4">
+  <!-- 点赞趋势 -->
+  <div class="col-lg-6">
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <h5 class="stat-card-title">
+          <span class="stat-card-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white;">❤️</span>
+          点赞趋势
+        </h5>
+        <select id="like-range-select" class="form-select form-select-sm" style="width: 120px;">
+          <option value="7">近7天</option>
+          <option value="30">近30天</option>
+        </select>
+      </div>
+      <div class="chart-container" style="height: 300px;">
+        <canvas id="like-trend-chart"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 收藏趋势 -->
+  <div class="col-lg-6">
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <h5 class="stat-card-title">
+          <span class="stat-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">⭐</span>
+          收藏趋势
+        </h5>
+        <select id="favorite-range-select" class="form-select form-select-sm" style="width: 120px;">
+          <option value="7">近7天</option>
+          <option value="30">近30天</option>
+        </select>
+      </div>
+      <div class="chart-container" style="height: 300px;">
+        <canvas id="favorite-trend-chart"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 评论趋势 -->
+  <div class="col-lg-12">
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <h5 class="stat-card-title">
+          <span class="stat-card-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">💬</span>
+          评论趋势
+        </h5>
+        <select id="comment-range-select" class="form-select form-select-sm" style="width: 120px;">
+          <option value="7">近7天</option>
+          <option value="30">近30天</option>
+        </select>
+      </div>
+      <div class="chart-container" style="height: 300px;">
+        <canvas id="comment-trend-chart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'dashboard/charts_pages.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  loadLikeTrendChart();
+  loadFavoriteTrendChart();
+  loadCommentTrendChart();
+  
+  document.getElementById("like-range-select").addEventListener("change", (e) => {
+    loadLikeTrendChart(parseInt(e.target.value, 10));
+  });
+  
+  document.getElementById("favorite-range-select").addEventListener("change", (e) => {
+    loadFavoriteTrendChart(parseInt(e.target.value, 10));
+  });
+  
+  document.getElementById("comment-range-select").addEventListener("change", (e) => {
+    loadCommentTrendChart(parseInt(e.target.value, 10));
+  });
+});
+</script>
+{% endblock %}
