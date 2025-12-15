@@ -1,0 +1,46 @@
+{% extends 'share_layout/base.html' %}
+{% load i18n %}
+
+{% block header %}
+    <title>{{ folder.name }} | 分享的收藏夹</title>
+{% endblock %}
+
+{% block compress_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'interaction/css/interaction.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <h1 class="mb-3">分享的收藏夹: {{ folder.name }}</h1>
+        <p class="text-muted">{{ folder.description }}</p>
+        <p class="small text-secondary">
+            收藏夹中的文章数: {{ folder.items.count }}
+        </p>
+        <div class="row">
+            {% for item in folder.items.all %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{{ item.article.get_absolute_url }}">{{ item.article.title }}</a>
+                            </h5>
+                            <p class="card-text text-muted">{{ item.article.abstract|default:item.article.body|truncatewords:30 }}</p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <span class="badge bg-light text-dark">
+                                添加于 {{ item.created_time }}
+                            </span>
+                            {% if item.note %}
+                                <span class="text-muted">{{ item.note }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p>还没有添加任何文章。</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+

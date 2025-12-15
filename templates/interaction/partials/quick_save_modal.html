@@ -1,0 +1,56 @@
+{% load i18n %}
+<div class="modal fade" id="quickSaveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="quickSaveForm" method="post" action="{% url 'interaction:quick_save' %}">
+                {% csrf_token %}
+                <input type="hidden" name="article_id" value="{{ article.id }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">保存到收藏夹</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">选择收藏夹</label>
+                        <select class="form-select" name="folder" id="quickSaveFolderSelect">
+                            <option value="">创建新收藏夹</option>
+                        </select>
+                    </div>
+                    <div id="quickSaveNewFolderFields">
+                        <div class="mb-3">
+                            <label class="form-label">收藏夹名称</label>
+                            <input type="text" class="form-control" name="folder_name" maxlength="80">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">描述</label>
+                            <textarea class="form-control" name="folder_description" rows="2"></textarea>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" value="on" name="folder_is_public" id="quickSavePublic">
+                            <label class="form-check-label" for="quickSavePublic">
+                                公开收藏夹（拥有链接的人可以查看）
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" value="on" name="allow_duplicates" id="quickSaveDup">
+                            <label class="form-check-label" for="quickSaveDup">
+                                允许保存重复文章
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">备注</label>
+                        <input type="text" class="form-control" name="note" maxlength="120">
+                    </div>
+                    <div class="alert alert-danger d-none" id="quickSaveError"></div>
+                    <div class="alert alert-success d-none" id="quickSaveSuccess"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存文章</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

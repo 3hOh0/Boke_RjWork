@@ -1,0 +1,255 @@
+{% extends "share_layout/base.html" %}
+{% load i18n static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- 侧边栏：收藏夹管理 -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-folder"></i> {% trans "My Folders" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2 mb-3">
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createFolderModal">
+                            <i class="fas fa-plus"></i> {% trans "New Folder" %}
+                        </button>
+                    </div>
+                    
+                    <div class="folder-list">
+                        {% for folder in folders %}
+                        <div class="folder-item d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                            <div>
+                                <strong>{{ folder.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ folder.items.count }} {% trans "items" %}</small>
+                            </div>
+                            <div class="folder-actions">
+                                <button class="btn btn-sm btn-outline-secondary" 
+                                        onclick="filterByFolder({{ folder.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 主内容区：收藏文章列表 -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{{ title }}</h1>
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control" id="searchInput" placeholder="{% trans 'Search favorites...' %}" style="width: 250px;">
+                    <select class="form-select" id="sortSelect" style="width: 150px;">
+                        <option value="created_time">{% trans "Newest First" %}</option>
+                        <option value="title">{% trans "Title A-Z" %}</option>
+                    </select>
+                </div>
+            </div>
+            
+            {% if page_obj %}
+            <div class="row" id="favoritesList">
+                {% for item in page_obj %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <a href="{{ item.article.get_absolute_url }}" class="text-decoration-none">
+                                    {{ item.article.title }}
+                                </a>
+                            </h6>
+                            <p class="card-text text-muted small">
+                                <i class="fas fa-folder"></i> {{ item.folder.name }}<br>
+                                <i class="fas fa-calendar"></i> {{ item.created_time|date:"Y-m-d H:i" }}
+                            </p>
+                            {% if item.note %}
+                            <p class="card-text border-top pt-2 small">
+                                <strong>{% trans "Note" %}:</strong> {{ item.note }}
+                            </p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">{{ item.article.category.name }}</small>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="removeFavorite({{ item.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- 分页 -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% else %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> {% trans "You haven't saved any favorites yet." %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 创建收藏夹模态框 -->
+<div class="modal fade" id="createFolderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Create New Folder" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createFolderForm">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Folder Name" %}</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Description" %}</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="is_public">
+                        <label class="form-check-label">{% trans "Make this folder public" %}</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" class="btn btn-primary" onclick="createFolder()">{% trans "Create" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterByFolder(folderId) {
+    // 根据收藏夹筛选文章
+    window.location.href = '?folder_id=' + folderId;
+}
+
+function removeFavorite(itemId) {
+    if (confirm('{% trans "Are you sure you want to remove this favorite?" %}')) {
+        fetch(`/interaction/items/${itemId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        }).then(response => response.json())
+        .then(data => {
+            if (data.deleted) {
+                location.reload();
+            }
+        });
+    }
+}
+
+function createFolder() {
+    const form = document.getElementById('createFolderForm');
+    const formData = new FormData(form);
+    
+    fetch('/interaction/folders/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: formData
+    }).then(response => response.json())
+    .then(data => {
+        if (data.id) {
+            $('#createFolderModal').modal('hide');
+            location.reload();
+        } else {
+            alert('Error creating folder');
+        }
+    });
+}
+
+// 搜索功能
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', function() {
+    const query = this.value.trim();
+    if (query.length >= 2) {
+        searchFavorites(query);
+    } else if (query.length === 0) {
+        location.reload();
+    }
+});
+
+function searchFavorites(query) {
+    fetch(`/interaction/favorites/search/?q=${encodeURIComponent(query)}`)
+    .then(response => response.json())
+    .then(data => {
+        updateFavoritesList(data.items);
+    });
+}
+
+function updateFavoritesList(items) {
+    const container = document.getElementById('favoritesList');
+    container.innerHTML = '';
+    
+    items.forEach(item => {
+        const col = document.createElement('div');
+        col.className = 'col-md-6 mb-4';
+        col.innerHTML = `
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <a href="${item.url}" class="text-decoration-none">${item.title}</a>
+                    </h6>
+                    <p class="card-text text-muted small">
+                        <i class="fas fa-folder"></i> ${item.folder_name}<br>
+                        <i class="fas fa-calendar"></i> ${item.created_time}
+                    </p>
+                    ${item.note ? `<p class="card-text border-top pt-2 small"><strong>Note:</strong> ${item.note}</p>` : ''}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">${item.category}</small>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeFavorite(${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(col);
+    });
+}
+</script>
+{% endblock %}

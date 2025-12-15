@@ -25,6 +25,15 @@
 
                 <a href="{% url "blog:archives" %}">{% trans 'Article archive' %}</a>
             </li>
+            <li class="menu-item">
+                <a href="{% url 'interaction:dashboard' %}">我的收藏</a>
+            </li>
+            <li class="menu-item">
+                <a href="{% url 'interaction:public_folders' %}">公开收藏夹</a>
+            </li>
+            <li class="menu-item">
+                <a href="{% url 'interaction:leaderboard_page' %}">点赞榜</a>
+            </li>
         </ul>
     </div>
 </nav><!-- #site-navigation -->
