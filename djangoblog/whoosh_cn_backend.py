@@ -22,7 +22,11 @@ from haystack.models import SearchResult
 from haystack.utils import get_identifier, get_model_ct
 from haystack.utils import log as logging
 from haystack.utils.app_loading import haystack_get_model
-from jieba.analyse import ChineseAnalyzer
+try:
+    from jieba.analyse import ChineseAnalyzer
+except Exception:
+    # Fallback: if ChineseAnalyzer isn't available in jieba, use Whoosh StemmingAnalyzer
+    from whoosh.analysis import StemmingAnalyzer as ChineseAnalyzer
 from whoosh import index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import BOOLEAN, DATETIME, IDLIST, KEYWORD, NGRAM, NGRAMWORDS, NUMERIC, Schema, TEXT

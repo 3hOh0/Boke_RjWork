@@ -65,6 +65,7 @@ class ArticlelAdmin(admin.ModelAdmin):
         close_article_commentstatus,
         open_article_commentstatus]
     raw_id_fields = ('author', 'category',)
+    change_form_template = 'admin/blog/article/change_form.html'
 
     def link_to_category(self, obj):
         info = (obj.category._meta.app_label, obj.category._meta.model_name)

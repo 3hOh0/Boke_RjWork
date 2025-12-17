@@ -1,7 +1,13 @@
 import logging
 import os
 import uuid
-
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST, require_GET
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
+from django.db import transaction
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseForbidden
@@ -16,6 +22,10 @@ from django.views.generic.list import ListView
 from haystack.views import SearchView
 
 from blog.models import Article, Category, LinkShowType, Links, Tag
+try:
+    from autosave.models import ArticleDraft
+except Exception:
+    ArticleDraft = None
 from comments.forms import CommentForm
 from djangoblog.plugin_manage import hooks
 from djangoblog.plugin_manage.hook_constants import ARTICLE_CONTENT_HOOK_NAME
@@ -378,3 +388,376 @@ def permission_denied_view(
 def clean_cache_view(request):
     cache.clear()
     return HttpResponse('ok')
+
+
+# ======================= 自动保存功能相关视图 =======================
+
+@login_required
+@require_POST
+@csrf_exempt
+def autosave_draft(request, article_id=None):
+    """
+    自动保存草稿API
+    POST /api/autosave/draft/              # 新文章
+    POST /api/autosave/draft/<article_id>/ # 已有文章
+    """
+    try:
+        data = json.loads(request.body)
+        title = data.get('title', '')
+        body = data.get('body', '')  # 注意：原Article模型使用body字段
+        save_type = data.get('save_type', 'auto')
+
+        # 获取其他可选字段
+        category_id = data.get('category_id')
+        tags = data.get('tags', [])
+        show_toc = data.get('show_toc', False)
+        article_order = data.get('article_order', 0)
+        comment_status = data.get('comment_status', 'o')
+        article_type = data.get('type', 'a')  # 注意：原字段名是type
+
+        with transaction.atomic():
+            if article_id:
+                # 更新已有文章
+                article = get_object_or_404(Article, id=article_id, author=request.user)
+
+                # 更新文章字段
+                if title:
+                    article.title = title
+                if body:
+                    article.body = body
+
+                # 更新分类
+                if category_id:
+                    try:
+                        category = Category.objects.get(id=category_id)
+                        article.category = category
+                    except Category.DoesNotExist:
+                        pass
+
+                # 更新标签
+                if tags and isinstance(tags, list):
+                    tag_objects = []
+                    for tag_name in tags:
+                        tag, created = Tag.objects.get_or_create(name=tag_name)
+                        tag_objects.append(tag)
+                    article.tags.set(tag_objects)
+
+                article.show_toc = show_toc
+                article.article_order = article_order
+                article.comment_status = comment_status
+                article.type = article_type
+                article.status = 'd'  # 确保是草稿状态
+                article.save()
+
+            else:
+                # 创建新文章（草稿）
+                category = None
+                if category_id:
+                    try:
+                        category = Category.objects.get(id=category_id)
+                    except Category.DoesNotExist:
+                        pass
+
+                article = Article.objects.create(
+                    title=title or '未命名文章',
+                    body=body,
+                    author=request.user,
+                    status='d',  # 草稿状态
+                    comment_status=comment_status,
+                    type=article_type,
+                    show_toc=show_toc,
+                    article_order=article_order,
+                    category=category if category else Category.objects.first()  # 默认分类
+                )
+
+                # 设置标签
+                if tags and isinstance(tags, list):
+                    for tag_name in tags:
+                        tag, created = Tag.objects.get_or_create(name=tag_name)
+                        article.tags.add(tag)
+
+            # 获取最新版本号
+            latest_draft = article.drafts.order_by('-version').first()
+            next_version = (latest_draft.version + 1) if latest_draft else 1
+
+            # 限制版本数量（最多5个自动保存版本）
+            auto_drafts = article.drafts.filter(save_type='auto').order_by('-saved_at')
+            if auto_drafts.count() >= 5:
+                # 删除第5个之后的版本
+                drafts_to_delete = auto_drafts[4:]
+                for draft in drafts_to_delete:
+                    draft.delete()
+
+            # 创建新草稿
+            draft_data = {
+                'article': article,
+                'user': request.user,
+                'title': title or article.title,
+                'body': body or article.body,
+                'save_type': save_type,
+                'version': next_version,
+                'status': article.status,
+                'comment_status': article.comment_status,
+                'article_type': article.type,
+                'show_toc': article.show_toc,
+                'article_order': article.article_order,
+            }
+
+            draft = ArticleDraft.objects.create(**draft_data)
+
+        return JsonResponse({
+            'success': True,
+            'message': '草稿已保存',
+            'data': {
+                'article_id': article.id,
+                'draft_id': draft.id,
+                'version': draft.version,
+                'saved_at': draft.saved_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'human_time': draft.get_human_time(),
+                'save_type': save_type,
+                'is_draft': article.status == 'd',
+                'title': article.title,
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"自动保存失败: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'保存失败: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_GET
+def get_draft_versions(request, article_id):
+    """
+    获取草稿版本列表
+    GET /api/autosave/versions/<article_id>/
+    """
+    try:
+        article = get_object_or_404(Article, id=article_id, author=request.user)
+
+        # 获取所有版本（最近10个）
+        drafts = article.drafts.order_by('-saved_at')[:10]
+
+        versions = []
+        for draft in drafts:
+            versions.append({
+                'id': draft.id,
+                'title': draft.title,
+                'body_preview': draft.body[:200] + '...' if len(draft.body) > 200 else draft.body,
+                'version': draft.version,
+                'save_type': draft.save_type,
+                'saved_at': draft.saved_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'human_time': draft.get_human_time(),
+                'status': draft.status,
+                'status_display': dict(Article.STATUS_CHOICES).get(draft.status, '未知'),
+            })
+
+        return JsonResponse({
+            'success': True,
+            'versions': versions,
+            'article_title': article.title,
+            'current_version': article.drafts.order_by('-version').first().version if article.drafts.exists() else 0,
+            'is_draft': article.status == 'd',
+        })
+
+    except Exception as e:
+        logger.error(f"获取版本历史失败: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'获取失败: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_POST
+@csrf_exempt
+def restore_version(request, draft_id):
+    """
+    恢复指定版本
+    POST /api/autosave/restore/<draft_id>/
+    """
+    try:
+        draft = get_object_or_404(ArticleDraft, id=draft_id, user=request.user)
+        article = draft.article
+
+        with transaction.atomic():
+            # 恢复文章内容
+            article.title = draft.title
+            article.body = draft.body
+            article.status = draft.status
+            article.comment_status = draft.comment_status
+            article.type = draft.article_type
+            article.show_toc = draft.show_toc
+            article.article_order = draft.article_order
+            article.save()
+
+            # 创建恢复记录
+            latest_draft = article.drafts.order_by('-version').first()
+            next_version = (latest_draft.version + 1) if latest_draft else 1
+
+            restore_draft = ArticleDraft.objects.create(
+                article=article,
+                user=request.user,
+                title=draft.title,
+                body=draft.body,
+                save_type='manual',
+                version=next_version,
+                status=draft.status,
+                comment_status=draft.comment_status,
+                article_type=draft.article_type,
+                show_toc=draft.show_toc,
+                article_order=draft.article_order,
+            )
+
+        return JsonResponse({
+            'success': True,
+            'message': '已恢复到指定版本',
+            'data': {
+                'title': draft.title,
+                'body': draft.body,
+                'version': restore_draft.version,
+                'status': draft.status,
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"恢复版本失败: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'恢复失败: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_POST
+@csrf_exempt
+def publish_article(request, article_id):
+    """
+    发布文章（将状态改为已发布）
+    POST /api/autosave/publish/<article_id>/
+    """
+    try:
+        article = get_object_or_404(Article, id=article_id, author=request.user)
+
+        # 检查是否有内容
+        if not article.title.strip() or not article.body.strip():
+            return JsonResponse({
+                'success': False,
+                'message': '标题和内容不能为空'
+            }, status=400)
+
+        # 更新状态为已发布
+        article.status = 'p'
+        article.pub_time = timezone.now()
+        article.save()
+
+        # 清除缓存（如果使用了缓存）
+        try:
+            from djangoblog.utils import cache
+            cache.clear()
+        except:
+            pass
+
+        return JsonResponse({
+            'success': True,
+            'message': '文章已发布',
+            'data': {
+                'article_id': article.id,
+                'title': article.title,
+                'status': article.status,
+                'pub_time': article.pub_time.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"发布文章失败: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'发布失败: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_GET
+def get_draft_status(request, article_id):
+    """
+    获取草稿状态
+    GET /api/autosave/status/<article_id>/
+    """
+    try:
+        article = get_object_or_404(Article, id=article_id, author=request.user)
+
+        latest_draft = article.drafts.order_by('-saved_at').first()
+
+        data = {
+            'article_id': article.id,
+            'title': article.title,
+            'status': article.status,
+            'last_modify_time': article.last_modify_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'is_draft': article.status == 'd',
+            'draft_count': article.drafts.count(),
+            'latest_draft': None,
+        }
+
+        if latest_draft:
+            data['latest_draft'] = {
+                'id': latest_draft.id,
+                'title': latest_draft.title,
+                'version': latest_draft.version,
+                'save_type': latest_draft.save_type,
+                'saved_at': latest_draft.saved_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'human_time': latest_draft.get_human_time(),
+            }
+
+        return JsonResponse({
+            'success': True,
+            'data': data
+        })
+
+    except Exception as e:
+        logger.error(f"获取草稿状态失败: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'获取失败: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_GET
+def get_article_drafts(request):
+    """
+    获取用户的所有草稿文章
+    GET /api/autosave/drafts/
+    """
+    try:
+        # 获取用户的草稿文章
+        drafts = Article.objects.filter(author=request.user, status='d').order_by('-last_modify_time')
+
+        draft_list = []
+        for article in drafts:
+            latest_draft = article.drafts.order_by('-saved_at').first()
+
+            draft_list.append({
+                'id': article.id,
+                'title': article.title,
+                'body_preview': article.body[:100] + '...' if len(article.body) > 100 else article.body,
+                'last_modify_time': article.last_modify_time.strftime('%Y-%m-%d %H:%M'),
+                'draft_count': article.drafts.count(),
+                'latest_draft_time': latest_draft.saved_at.strftime('%Y-%m-%d %H:%M') if latest_draft else None,
+            })
+
+        return JsonResponse({
+            'success': True,
+            'drafts': draft_list,
+            'count': len(draft_list)
+        })
+
+    except Exception as e:
+        logger.error(f"获取草稿列表失败: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'获取失败: {str(e)}'
+        }, status=500)

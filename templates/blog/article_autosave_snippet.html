@@ -1,0 +1,85 @@
+{% load static %}
+<script src="{% static 'blog/js/autosave.js' %}"></script>
+<style>
+    #autosave-panel { position: fixed; right: 20px; bottom: 20px; z-index: 9999; }
+    #autosave-panel button { margin-left: 8px; }
+    #autosave-modal { display:none; position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); background:#fff; border:1px solid #ddd; padding:16px; z-index:10000; max-width:800px; width:90%; box-shadow:0 8px 24px rgba(0,0,0,0.2); }
+    #autosave-modal h3 { margin-top:0 }
+    #autosave-modal .close { cursor:pointer; float:right }
+    #autosave-modal .versions { max-height:400px; overflow:auto }
+    #autosave-overlay { display:none; position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(0,0,0,0.4); z-index:9998 }
+</style>
+
+<div id="autosave-panel">
+    <button id="version-history-btn" class="btn">版本历史</button>
+</div>
+
+<div id="autosave-overlay"></div>
+<div id="autosave-modal" role="dialog" aria-hidden="true">
+    <span class="close" id="autosave-close">×</span>
+    <h3>草稿版本历史</h3>
+    <div class="versions" id="autosave-versions-list">加载中 …</div>
+    <div style="text-align:right;margin-top:12px"><button id="autosave-close-btn">关闭</button></div>
+</div>
+
+<script>
+function getArticleIdFromPage(){
+    var m = window.location.pathname.match(/article\/\d+\/\d+\/\d+\/(\d+)\.html/);
+    if(m) return m[1];
+    var idInput = document.querySelector('input[name="id"], input[name="article_id"]');
+    if(idInput && idInput.value) return idInput.value;
+    return null;
+}
+
+function fetchVersions(articleId){
+    if(!articleId) return Promise.reject('no article id');
+    return fetch('/api/autosave/versions/' + articleId + '/', { credentials: 'same-origin' }).then(function(r){ return r.json(); });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    try{ autosaveInit('#id_content', { saveUrl: '/api/autosave/draft/', interval: 5000 }); }catch(e){/*ignore*/}
+
+    var overlay = document.getElementById('autosave-overlay');
+    var modal = document.getElementById('autosave-modal');
+    var list = document.getElementById('autosave-versions-list');
+    var btn = document.getElementById('version-history-btn');
+    var close = document.getElementById('autosave-close');
+    var closeBtn = document.getElementById('autosave-close-btn');
+
+    function openModal(){
+        overlay.style.display = 'block';
+        modal.style.display = 'block';
+        var aid = getArticleIdFromPage();
+        if(!aid){ list.innerHTML = '<p>当前未识别文章 ID，无法加载版本。</p>'; return; }
+        list.innerHTML = '<p>加载中 …</p>';
+        fetchVersions(aid).then(function(resp){
+            if(!resp || !resp.versions) { list.innerHTML = '<p>无版本</p>'; return; }
+            if(resp.versions.length === 0){ list.innerHTML = '<p>暂无自动保存版本</p>'; return; }
+            var html = '<ul style="list-style:none;padding:0;margin:0">';
+            resp.versions.forEach(function(v){
+                html += '<li style="padding:8px;border-bottom:1px solid #eee">'
+                         + '<strong>' + (v.title || '无标题') + '</strong> &nbsp; <small>' + v.saved_at + '</small>'
+                         + '<div style="margin-top:6px"><button class="restore-btn" data-id="' + v.id + '">恢复此版本</button></div>'
+                         + '<div style="margin-top:6px;color:#666">' + (v.body_preview || '') + '</div>'
+                         + '</li>';
+            });
+            html += '</ul>';
+            list.innerHTML = html;
+            Array.from(list.querySelectorAll('.restore-btn')).forEach(function(b){
+                b.addEventListener('click', function(){
+                    var draftId = this.getAttribute('data-id');
+                    fetch('/api/autosave/restore/' + draftId + '/', { method: 'POST', credentials: 'same-origin', headers: {'X-CSRFToken': (document.querySelector('[name=csrfmiddlewaretoken]')||{}).value || ''} })
+                        .then(function(r){ return r.json(); })
+                        .then(function(res){ if(res && res.success){ alert('已恢复：' + (res.data && res.data.title)); location.reload(); } else { alert('恢复失败'); } })
+                        .catch(function(){ alert('恢复失败'); });
+                });
+            });
+        }).catch(function(){ list.innerHTML = '<p>加载版本失败</p>'; });
+    }
+
+    btn && btn.addEventListener('click', openModal);
+    overlay && overlay.addEventListener('click', function(){ overlay.style.display='none'; modal.style.display='none'; });
+    close && close.addEventListener('click', function(){ overlay.style.display='none'; modal.style.display='none'; });
+    closeBtn && closeBtn.addEventListener('click', function(){ overlay.style.display='none'; modal.style.display='none'; });
+});
+</script>

@@ -1,0 +1,132 @@
+# 创建通用的autosave包含文件
+mkdir -p templates/includes/
+
+echo '{% load static %}
+{# 自动保存CSS样式 #}
+<style>
+    #autosave-indicator {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 6px;
+        background: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999;
+        opacity: 0;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        font-family: -apple-system, BlinkMacSystemFont, '\''Segoe UI'\'', Roboto, sans-serif;
+        pointer-events: none;
+        max-width: 300px;
+    }
+    
+    #save-draft-btn, #version-history-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 10px 5px;
+        font-size: 14px;
+    }
+    
+    #save-draft-btn {
+        background: #6c757d;
+        color: white;
+    }
+    
+    #version-history-btn {
+        background: #17a2b8;
+        color: white;
+    }
+</style>
+
+{# 自动保存状态指示器 #}
+<div id="autosave-indicator"></div>
+
+{# 自动保存JavaScript #}
+<script src="{% static '\''blog/js/autosave.js'\'' %}"></script>
+<script>
+// 自动检测并初始化自动保存功能
+(function() {
+    // 检查当前页面是否是文章编辑页面
+    function isArticleEditPage() {
+        // 检查是否有标题和内容输入框
+        var titleInput = document.querySelector('\''input[name="title"], #id_title, [name="title"]'\'');
+        var contentInput = document.querySelector('\''textarea[name="body"], textarea[name="content"], #id_body, #id_content'\'');
+        
+        // 检查是否在Admin后台（有change-form类）
+        var isAdmin = document.querySelector('\''.change-form'\'') !== null;
+        
+        return (titleInput && contentInput) || isAdmin;
+    }
+    
+    // 获取文章ID
+    function getArticleId() {
+        var articleId = null;
+        
+        // 从URL中提取
+        var pathMatch = window.location.pathname.match(/\/(\d+)\//);
+        if (pathMatch) {
+            articleId = pathMatch[1];
+        }
+        
+        // 从隐藏字段获取
+        if (!articleId) {
+            var idInput = document.querySelector('\''input[name="id"], input[name="article_id"]'\'');
+            if (idInput && idInput.value) {
+                articleId = idInput.value;
+            }
+        }
+        
+        // 从原始对象获取（Admin后台）
+        if (!articleId && window.__article_id__) {
+            articleId = window.__article_id__;
+        }
+        
+        return articleId;
+    }
+    
+    // 获取CSRF Token
+    function getCsrfToken() {
+        var csrfToken = document.querySelector('\''[name=csrfmiddlewaretoken]\'')?.value;
+        if (!csrfToken) {
+            var cookies = document.cookie.split('\'';'\'');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.startsWith('\''csrftoken='\'')) {
+                    csrfToken = cookie.substring('\''csrftoken='\''.length);
+                    break;
+                }
+            }
+        }
+        return csrfToken;
+    }
+    
+    // 页面加载完成后初始化
+    document.addEventListener('\''DOMContentLoaded'\'', function() {
+        if (isArticleEditPage()) {
+            var articleId = getArticleId();
+            var csrfToken = getCsrfToken();
+            
+            console.log('\''初始化自动保存，文章ID:'\'', articleId);
+            
+            // 初始化自动保存
+            var autosave = new ArticleAutosave({
+                articleId: articleId,
+                csrfToken: csrfToken,
+                autoSaveInterval: 30000,
+                saveUrl: '\''/api/autosave/draft/'\'',
+                versionsUrl: '\''/api/autosave/versions/'\'',
+                restoreUrl: '\''/api/autosave/restore/'\'',
+                publishUrl: '\''/api/autosave/publish/'\'',
+                statusUrl: '\''/api/autosave/status/'\'',
+            });
+            
+            // 将autosave对象存储在全局，以便调试
+            window.autosave = autosave;
+        }
+    });
+})();
+</script>' > templates/includes/autosave.html
