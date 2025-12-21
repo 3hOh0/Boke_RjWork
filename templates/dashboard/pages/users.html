@@ -1,0 +1,70 @@
+{% extends "dashboard/pages/base_page.html" %}
+{% load static %}
+
+{% block nav_users %}active{% endblock %}
+
+{% block page_content %}
+<h3 class="mb-4" style="color: white; font-weight: 700;">👥 用户统计</h3>
+
+<div class="row g-4">
+  <!-- 热门文章 -->
+  <div class="col-lg-6">
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <h5 class="stat-card-title">
+          <span class="stat-card-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444); color: white;">🔥</span>
+          热门文章 TOP10
+        </h5>
+      </div>
+      <div class="table-responsive">
+        <table class="ranking-table table table-hover mb-0" id="top-articles-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">#</th>
+              <th>标题</th>
+              <th style="width: 100px;">浏览量</th>
+              <th style="width: 80px;">评论</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 热门作者 -->
+  <div class="col-lg-6">
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <h5 class="stat-card-title">
+          <span class="stat-card-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">👑</span>
+          热门作者 TOP10
+        </h5>
+      </div>
+      <div class="table-responsive">
+        <table class="ranking-table table table-hover mb-0" id="top-authors-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">#</th>
+              <th>用户名</th>
+              <th style="width: 100px;">文章数</th>
+              <th style="width: 120px;">总浏览量</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'dashboard/charts_pages.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  loadTopArticles();
+  loadTopAuthors();
+});
+</script>
+{% endblock %}

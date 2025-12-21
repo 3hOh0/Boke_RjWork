@@ -1,0 +1,44 @@
+{% extends "dashboard/pages/base_page.html" %}
+{% load static %}
+
+{% block nav_activities %}active{% endblock %}
+
+{% block page_content %}
+<h3 class="mb-4" style="color: white; font-weight: 700;">⚡ 最近活动</h3>
+
+<div class="row">
+  <div class="col-12">
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <h5 class="stat-card-title">
+          <span class="stat-card-icon" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">📋</span>
+          实时活动流
+        </h5>
+        <select id="activity-limit-select" class="form-select form-select-sm" style="width: 120px;">
+          <option value="20">最近20条</option>
+          <option value="50">最近50条</option>
+          <option value="100">最近100条</option>
+        </select>
+      </div>
+      <div id="activities-container" style="max-height: 600px; overflow-y: auto;">
+        <div class="activity-timeline" id="activity-timeline">
+          <!-- 活动将在这里动态加载 -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'dashboard/charts_pages.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  loadActivities();
+  
+  document.getElementById("activity-limit-select").addEventListener("change", (e) => {
+    loadActivities(parseInt(e.target.value, 10));
+  });
+});
+</script>
+{% endblock %}

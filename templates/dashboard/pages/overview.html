@@ -1,0 +1,147 @@
+{% extends "dashboard/pages/base_page.html" %}
+{% load static %}
+
+{% block nav_overview %}active{% endblock %}
+
+{% block page_content %}
+<h3 class="mb-4" style="color: white; font-weight: 700;">📊 关键指标概览</h3>
+
+<!-- 关键指标卡片 -->
+<div class="row g-3">
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #667eea; --card-color-2: #764ba2;">
+      <div class="metric-icon">📝</div>
+      <div class="metric-label">文章总数</div>
+      <div class="metric-value" id="card-article">--</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #06b6d4; --card-color-2: #3b82f6;">
+      <div class="metric-icon">✅</div>
+      <div class="metric-label">已发布</div>
+      <div class="metric-value" id="card-published">--</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #f59e0b; --card-color-2: #ef4444;">
+      <div class="metric-icon">📋</div>
+      <div class="metric-label">草稿</div>
+      <div class="metric-value" id="card-draft">--</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #8b5cf6; --card-color-2: #ec4899;">
+      <div class="metric-icon">👁️</div>
+      <div class="metric-label">总浏览量</div>
+      <div class="metric-value" id="card-pv">--</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #10b981; --card-color-2: #059669;">
+      <div class="metric-icon">💬</div>
+      <div class="metric-label">评论总数</div>
+      <div class="metric-value" id="card-comment">--</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #ef4444; --card-color-2: #dc2626;">
+      <div class="metric-icon">❤️</div>
+      <div class="metric-label">点赞总数</div>
+      <div class="metric-value" id="card-like">--</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #f59e0b; --card-color-2: #d97706;">
+      <div class="metric-icon">⭐</div>
+      <div class="metric-label">收藏总数</div>
+      <div class="metric-value" id="card-favorite">--</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #06b6d4; --card-color-2: #0891b2;">
+      <div class="metric-icon">👥</div>
+      <div class="metric-label">用户总数</div>
+      <div class="metric-value" id="card-user">--</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #10b981; --card-color-2: #059669;">
+      <div class="metric-icon">🔥</div>
+      <div class="metric-label">活跃用户</div>
+      <div class="metric-value" id="card-active-users">--</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #8b5cf6; --card-color-2: #7c3aed;">
+      <div class="metric-icon">🏷️</div>
+      <div class="metric-label">标签总数</div>
+      <div class="metric-value" id="card-tags">--</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #ec4899; --card-color-2: #db2777;">
+      <div class="metric-icon">📂</div>
+      <div class="metric-label">分类总数</div>
+      <div class="metric-value" id="card-categories">--</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="metric-card" style="--card-color-1: #f59e0b; --card-color-2: #d97706;">
+      <div class="metric-icon">📁</div>
+      <div class="metric-label">收藏夹数</div>
+      <div class="metric-value" id="card-folders">--</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function fetchJSON(url) {
+  const res = await fetch(url, { credentials: "same-origin" });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+function animateValue(elementId, end, duration = 1000) {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+  
+  const start = 0;
+  const increment = end / (duration / 16);
+  let current = start;
+  
+  const timer = setInterval(() => {
+    current += increment;
+    if (current >= end) {
+      element.textContent = end.toLocaleString();
+      clearInterval(timer);
+    } else {
+      element.textContent = Math.floor(current).toLocaleString();
+    }
+  }, 16);
+}
+
+async function loadMetrics() {
+  try {
+    const data = await fetchJSON("/dashboard/api/metrics/");
+    animateValue("card-article", data.article_total);
+    animateValue("card-published", data.article_published);
+    animateValue("card-draft", data.article_draft);
+    animateValue("card-pv", data.pv_total);
+    animateValue("card-comment", data.comment_total);
+    animateValue("card-like", data.like_total);
+    animateValue("card-favorite", data.favorite_total);
+    animateValue("card-user", data.user_total);
+    animateValue("card-active-users", data.active_users || 0);
+    animateValue("card-tags", data.tag_total || 0);
+    animateValue("card-categories", data.category_total || 0);
+    animateValue("card-folders", data.folder_total || 0);
+  } catch (error) {
+    console.error('加载指标失败:', error);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadMetrics);
+</script>
+{% endblock %}

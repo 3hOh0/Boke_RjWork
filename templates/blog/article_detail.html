@@ -1,0 +1,75 @@
+{% extends 'share_layout/base.html' %}
+{% load blog_tags %}
+{% load static %}
+{% load i18n %}
+
+{% block header %}
+{% endblock %}
+{% block content %}
+    <div id="primary" class="site-content">
+        <div id="content" role="main">
+            {% load_article_detail article False user %}
+            <div class="interaction-toolbar" style="display:flex;align-items:center;gap:12px;margin:20px 0;">
+                <button class="btn btn-primary" data-like-button data-article-id="{{ article.id }}">
+                    👍 点赞
+                </button>
+                <span class="badge bg-light text-dark" data-like-counter="{{ article.id }}">
+                    {{ article.likes.count }}
+                </span>
+                <button class="btn btn-outline-secondary" type="button"
+                        data-save-button data-article-id="{{ article.id }}">
+                    ⭐ 收藏
+                </button>
+            </div>
+
+            {% if article.type == 'a' %}
+                <nav class="nav-single">
+                    <h3 class="assistive-text">文章导航</h3>
+                    {% if next_article %}
+
+                        <span class="nav-previous"><a href="{{ next_article.get_absolute_url }}" rel="prev"><span
+                                class="meta-nav">&larr;</span> {{ next_article.title }}</a></span>
+                    {% endif %}
+                    {% if prev_article %}
+                        <span class="nav-next"><a href="{{ prev_article.get_absolute_url }}"
+                                                  rel="next">{{ prev_article.title }} <span
+                                class="meta-nav">&rarr;</span></a></span>
+                    {% endif %}
+                </nav><!-- .nav-single -->
+            {% endif %}
+
+        </div><!-- #content -->
+        {% if article.comment_status == "o" and OPEN_SITE_COMMENT %}
+
+
+            {% include 'comments/tags/comment_list.html' %}
+            {% if user.is_authenticated %}
+                {% include 'comments/tags/post_comment.html' %}
+            {% else %}
+                <div class="comments-area">
+                    <h3 class="comment-meta">您还没有登录，请您<a
+                            href="{% url "account:login" %}?next={{ request.get_full_path }}" rel="nofollow">登录</a>后发表评论。
+                    </h3>
+
+                    {% load oauth_tags %}
+                    {% load_oauth_applications request %}
+
+                </div>
+            {% endif %}
+        {% endif %}
+    </div><!-- #primary -->
+
+{% endblock %}
+
+{% include 'interaction/partials/quick_save_modal.html' %}
+
+{% block sidebar %}
+    {% load_sidebar user "p" %}
+{% endblock %}
+
+{% block compress_js %}
+    {{ block.super }}
+    {# 确保页面设置 CSRF Cookie 供前端 AJAX 使用 #}
+    <form style="display:none;">{% csrf_token %}</form>
+    <script src="{% static 'blog/js/interaction.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,451 @@
+{% extends "share_layout/base.html" %}
+{% load static %}
+{% block content %}
+<style>
+  /* 仪表盘容器 */
+  .dashboard-wrapper {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 0;
+  }
+  
+  /* 顶部导航栏 */
+  .dashboard-nav {
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+  }
+  
+  .nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    border-bottom: none;
+  }
+  
+  .nav-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+  
+  .nav-tabs-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2rem;
+  }
+  
+  .nav-tabs {
+    border-bottom: none;
+    gap: 0.25rem;
+    display: flex;
+    flex-wrap: nowrap;
+    margin: 0;
+  }
+  
+  .nav-tabs .nav-link {
+    border: none;
+    color: #64748b;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    transition: all 0.3s ease;
+    position: relative;
+    background: transparent;
+    border-radius: 10px;
+    text-decoration: none;
+    white-space: nowrap;
+    font-size: 0.95rem;
+  }
+  
+  .nav-tabs .nav-link:hover {
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+  }
+  
+  .nav-tabs .nav-link.active {
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+  
+  .nav-tabs .nav-link i {
+    margin-right: 0.4rem;
+    font-style: normal;
+  }
+  
+  /* 内容区域 */
+  .dashboard-content {
+    padding: 2rem 0;
+  }
+  
+  /* 统计卡片基础样式 */
+  .stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: none;
+    height: 100%;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+  
+  .stat-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  
+  .stat-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .stat-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+  
+  /* 指标卡片 */
+  .metric-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+  }
+  
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--card-color-1), var(--card-color-2));
+  }
+  
+  .metric-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  }
+  
+  .metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, var(--card-color-1), var(--card-color-2));
+    color: white;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .metric-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .metric-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--card-color-1), var(--card-color-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  
+  /* 图表容器 */
+  .chart-container {
+    position: relative;
+    width: 100%;
+  }
+  
+  /* 表格样式 */
+  .ranking-table {
+    margin: 0;
+  }
+  
+  .ranking-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+  
+  .ranking-table thead th {
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .ranking-table tbody tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .ranking-table tbody tr:hover {
+    background: linear-gradient(90deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+    transform: scale(1.01);
+  }
+  
+  .ranking-table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+  }
+  
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.875rem;
+  }
+  
+  .rank-badge.top-1 {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #8b6914;
+    box-shadow: 0 4px 10px rgba(255, 215, 0, 0.3);
+  }
+  
+  .rank-badge.top-2 {
+    background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+    color: #666;
+    box-shadow: 0 4px 10px rgba(192, 192, 192, 0.3);
+  }
+  
+  .rank-badge.top-3 {
+    background: linear-gradient(135deg, #cd7f32, #e8a87c);
+    color: #5c3a1a;
+    box-shadow: 0 4px 10px rgba(205, 127, 50, 0.3);
+  }
+  
+  .rank-badge.other {
+    background: #f0f0f0;
+    color: #666;
+  }
+  
+  /* 活动时间线 */
+  .activity-timeline {
+    position: relative;
+    padding-left: 2rem;
+  }
+  
+  .activity-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+  }
+  
+  .activity-item::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--activity-color);
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px var(--activity-color);
+  }
+  
+  .activity-item::after {
+    content: '';
+    position: absolute;
+    left: -1.06rem;
+    top: 1.5rem;
+    width: 2px;
+    height: calc(100% - 1rem);
+    background: #e2e8f0;
+  }
+  
+  .activity-item:last-child::after {
+    display: none;
+  }
+  
+  .activity-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+  
+  .activity-time {
+    color: #94a3b8;
+    font-size: 0.875rem;
+  }
+  
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .nav-header {
+      padding: 1rem;
+    }
+    
+    .nav-tabs-container {
+      padding: 0 1rem;
+      overflow-x: auto;
+    }
+    
+    .nav-tabs {
+      flex-wrap: nowrap;
+    }
+    
+    .nav-tabs .nav-link {
+      padding: 0.75rem 1rem;
+      white-space: nowrap;
+    }
+    
+    .dashboard-content {
+      padding: 1rem 0;
+    }
+  }
+  
+  /* 动画效果 */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+</style>
+
+<div class="dashboard-wrapper">
+  <!-- 顶部导航栏 - 横向单行布局 -->
+  <nav class="dashboard-nav">
+    <div class="container-fluid">
+      <div class="nav-header">
+        <h1 class="nav-title">
+          <span>📊</span>
+          统计仪表盘
+        </h1>
+        
+        <!-- 导航菜单 - 横向排列 -->
+        <div class="nav-tabs-container">
+          <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link {% block nav_overview %}{% endblock %}" href="{% url 'dashboard:overview' %}">
+                <i>🏠</i> 概览
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% block nav_content %}{% endblock %}" href="{% url 'dashboard:content' %}">
+                <i>📝</i> 内容分析
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% block nav_engagement %}{% endblock %}" href="{% url 'dashboard:engagement' %}">
+                <i>💬</i> 用户互动
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% block nav_users %}{% endblock %}" href="{% url 'dashboard:users' %}">
+                <i>👥</i> 用户统计
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% block nav_activities %}{% endblock %}" href="{% url 'dashboard:activities' %}">
+                <i>⚡</i> 最近活动
+              </a>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="text-muted" style="font-size: 0.875rem; white-space: nowrap;">
+          <span id="current-time">--</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 内容区域 -->
+  <div class="dashboard-content">
+    <div class="container-fluid px-4">
+      {% block page_content %}
+      <!-- 各页面内容 -->
+      {% endblock %}
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js库 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // 更新当前时间
+  function updateTime() {
+    const now = new Date();
+    document.getElementById('current-time').textContent = now.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  }
+  updateTime();
+  setInterval(updateTime, 1000);
+</script>
+
+{% block extra_js %}
+<!-- 子页面可以添加额外的JS -->
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans "Your article received a like" %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .article-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+        .stats {
+            background: #e8f4fd;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎉 {% trans "Your article received a like!" %}</h1>
+        <p>{% trans "Someone just liked your article" %}</p>
+    </div>
+    
+    <div class="content">
+        <h2>{% trans "Article Details" %}</h2>
+        
+        <div class="article-card">
+            <h3>{{ article.title }}</h3>
+            <p><strong>{% trans "Category" %}:</strong> {{ article.category.name }}</p>
+            <p><strong>{% trans "Published" %}:</strong> {{ article.pub_time|date:"Y-m-d H:i" }}</p>
+            <p><strong>{% trans "Total Views" %}:</strong> {{ article.views }}</p>
+            <p><strong>{% trans "Total Likes" %}:</strong> {{ like_count }}</p>
+            
+            <a href="{{ article_url }}" class="btn">
+                {% trans "View Article" %}
+            </a>
+        </div>
+        
+        <div class="stats">
+            <h3>📊 {% trans "Engagement Statistics" %}</h3>
+            <p>{% trans "This article now has" %} <strong>{{ like_count }}</strong> {% trans "likes" %}.</p>
+            <p>{% trans "It's one of your most popular articles!" %}</p>
+        </div>
+        
+        <h3>{% trans "What's next?" %}</h3>
+        <ul>
+            <li>{% trans "Keep writing great content" %}</li>
+            <li>{% trans "Engage with your readers in the comments" %}</li>
+            <li>{% trans "Share your article on social media" %}</li>
+        </ul>
+        
+        <div class="footer">
+            <p>{% trans "Best regards," %}<br>{% trans "The DjangoBlog Team" %}</p>
+            <p><small>{% trans "You're receiving this email because someone liked your article. If you'd like to disable these notifications, please update your account settings." %}</small></p>
+        </div>
+    </div>
+</body>
+</html>

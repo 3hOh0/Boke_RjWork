@@ -1,0 +1,72 @@
+{% extends 'share_layout/base.html' %}
+{% load i18n %}
+{% load tz %}
+{% load static %}
+{% load static %}
+
+{% block header %}
+    <title>点赞排行榜</title>
+{% endblock %}
+
+{% block compress_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'interaction/css/interaction.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="hero-panel mb-4">
+            <div>
+                <p class="badge text-bg-primary mb-2">互动 · 热榜</p>
+                <h1 class="mb-2">点赞排行榜</h1>
+                <p class="text-muted mb-0">用时间筛选，快速发现当前最受欢迎的文章</p>
+            </div>
+            <form class="d-flex flex-wrap gap-2 align-items-center" method="get">
+                <input type="datetime-local" class="form-control" name="since" value="{{ since }}" style="min-width: 220px;">
+                <button class="btn btn-primary">自定义筛选</button>
+                <div class="chip-group ms-2">
+                    <a class="chip {% if not since %}active{% endif %}" href="{% url 'interaction:leaderboard_page' %}">全部</a>
+                    <a class="chip" href="{% url 'interaction:leaderboard_page' %}?since={{ timezone.now|date:'Y-m-d\\TH:i'|default:'' }}">此刻</a>
+                    <a class="chip" href="{% url 'interaction:leaderboard_page' %}?since={{ timezone.now|date:'Y-m-d\\TH:i'|add:'-7d'|default:'' }}">7 天内</a>
+                    <a class="chip" href="{% url 'interaction:leaderboard_page' %}?since={{ timezone.now|date:'Y-m-d\\TH:i'|add:'-30d'|default:'' }}">30 天内</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped align-middle leaderboard-table">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>文章标题</th>
+                    <th>总点赞数</th>
+                    <th>近7天</th>
+                    <th>近30天</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for entry in entries %}
+                    <tr class="{% if forloop.counter <= 3 %}table-rank-top{% endif %}">
+                        <td>
+                            <span class="rank-badge {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+                                {{ forloop.counter }}
+                            </span>
+                        </td>
+                        <td><a href="{{ entry.url }}">{{ entry.title }}</a></td>
+                        <td><span class="badge text-bg-primary">{{ entry.total_likes }}</span></td>
+                        <td><span class="badge text-bg-info">{{ entry.delta_7d }}</span></td>
+                        <td><span class="badge text-bg-secondary">{{ entry.delta_30d }}</span></td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            暂无数据。请尝试移除筛选条件。
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
