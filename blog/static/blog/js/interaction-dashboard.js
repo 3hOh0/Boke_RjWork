@@ -63,13 +63,29 @@
             const url = copyBtn.dataset.copyShare;
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(url).then(() => {
-                    copyBtn.textContent = '已复制！';
-                    setTimeout(() => copyBtn.textContent = '复制链接', 1200);
+                    const originalHtml = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fas fa-check me-2 w-20"></i>已复制';
+                    setTimeout(() => copyBtn.innerHTML = originalHtml, 2000);
                 }).catch(() => {
                     window.prompt('复制失败，请手动复制链接：', url);
                 });
             } else {
                 window.prompt('请手动复制链接：', url);
+            }
+        }
+
+        const deleteFolderBtn = event.target.closest('[data-delete-folder]');
+        if (deleteFolderBtn) {
+            event.preventDefault();
+            const folderId = deleteFolderBtn.dataset.deleteFolder;
+            if (confirm('确定要删除这个收藏夹吗？此操作无法撤销。')) {
+                ajax('DELETE', '/interaction/folders/' + folderId + '/').then(res => {
+                    if (res.deleted) {
+                        window.location.reload();
+                    } else {
+                        alert('删除失败，请重试');
+                    }
+                });
             }
         }
 
@@ -79,6 +95,8 @@
             const folderId = pinBtn.dataset.folderPin;
             const formData = new FormData();
             formData.append('action', pinBtn.textContent.includes('取消') ? 'unpin_folders' : 'pin_folders');
+            // Fix: formData expects item_ids/folder_ids as lists, but backend handles single values too if logic permits. 
+            // Batch view expects folder_ids.
             formData.append('folder_ids', folderId);
             ajax('POST', '/interaction/batch/', formData).then(() => window.location.reload());
         }

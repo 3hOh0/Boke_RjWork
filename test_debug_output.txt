@@ -1,0 +1,119 @@
+[2025-12-22 19:30:25,601] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章结尾版权声明 initialized.
+[2025-12-22 19:30:25,601] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章结尾版权声明 initialized.
+[2025-12-22 19:30:25,601] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_copyright - 文章结尾版权声明
+[2025-12-22 19:30:25,601] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_copyright - 文章结尾版权声明
+[2025-12-22 19:30:25,603] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 阅读时间预测 initialized.
+[2025-12-22 19:30:25,603] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 阅读时间预测 initialized.
+[2025-12-22 19:30:25,604] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: reading_time - 阅读时间预测
+[2025-12-22 19:30:25,604] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: reading_time - 阅读时间预测
+[2025-12-22 19:30:25,605] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 外部链接处理器 initialized.
+[2025-12-22 19:30:25,605] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 外部链接处理器 initialized.
+[2025-12-22 19:30:25,605] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: external_links - 外部链接处理器
+[2025-12-22 19:30:25,605] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: external_links - 外部链接处理器
+[2025-12-22 19:30:25,607] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章浏览次数统计 initialized.
+[2025-12-22 19:30:25,607] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章浏览次数统计 initialized.
+[2025-12-22 19:30:25,607] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: view_count - 文章浏览次数统计
+[2025-12-22 19:30:25,607] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: view_count - 文章浏览次数统计
+[2025-12-22 19:30:25,608] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] SEO 优化器 initialized.
+[2025-12-22 19:30:25,608] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] SEO 优化器 initialized.
+[2025-12-22 19:30:25,608] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: seo_optimizer - SEO 优化器
+[2025-12-22 19:30:25,608] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: seo_optimizer - SEO 优化器
+[2025-12-22 19:30:25,609] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 图片性能优化插件 initialized.
+[2025-12-22 19:30:25,609] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 图片性能优化插件 initialized.
+[2025-12-22 19:30:25,609] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: image_lazy_loading - 图片性能优化插件
+[2025-12-22 19:30:25,609] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: image_lazy_loading - 图片性能优化插件
+[2025-12-22 19:30:25,611] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章推荐 initialized.
+[2025-12-22 19:30:25,611] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章推荐 initialized.
+[2025-12-22 19:30:25,611] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_recommendation - 文章推荐
+[2025-12-22 19:30:25,611] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_recommendation - 文章推荐
+Creating test database for alias 'default' ('test_djangoblog')...
+
+Found 7 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: compressor, djangoblog, haystack, mdeditor, messages, sitemaps, staticfiles
+  Apply all migrations: accounts, admin, auth, blog, comments, contenttypes, interaction, oauth, owntracks, servermanager, sessions, sites
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying accounts.0001_initial... OK
+  Applying accounts.0002_alter_bloguser_options_remove_bloguser_created_time_and_more... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying blog.0001_initial... OK
+  Applying blog.0002_blogsettings_global_footer_and_more... OK
+  Applying blog.0003_blogsettings_comment_need_review... OK
+  Applying blog.0004_rename_analyticscode_blogsettings_analytics_code_and_more... OK
+  Applying blog.0005_alter_article_options_alter_category_options_and_more... OK
+  Applying blog.0006_alter_blogsettings_options... OK
+  Applying comments.0001_initial... OK
+  Applying comments.0002_alter_comment_is_enable... OK
+  Applying comments.0003_alter_comment_options_remove_comment_created_time_and_more... OK
+  Applying interaction.0001_initial... OK
+  Applying interaction.0002_folder_tags_sort_pinned_item_note_version... OK
+  Applying oauth.0001_initial... OK
+  Applying oauth.0002_alter_oauthconfig_options_alter_oauthuser_options_and_more... OK
+  Applying oauth.0003_alter_oauthuser_nickname... OK
+  Applying owntracks.0001_initial... OK
+  Applying owntracks.0002_alter_owntracklog_options_and_more... OK
+  Applying servermanager.0001_initial... OK
+  Applying servermanager.0002_alter_emailsendlog_options_and_more... OK
+  Applying sessions.0001_initial... OK
+  Applying sites.0001_initial... OK
+test_case_01_like_normal_flow (interaction.tests_comprehensive.ComprehensiveInteractionTests.test_case_01_like_normal_flow)
+[Like] 正常流程：用户点赞，再次点击取消点赞 ... ok
+test_case_02_like_nonexistent_article (interaction.tests_comprehensive.ComprehensiveInteractionTests.test_case_02_like_nonexistent_article)
+[Like] 异常处理：点赞不存在的文章 ... ok
+test_case_03_favorite_create_folder_boundary (interaction.tests_comprehensive.ComprehensiveInteractionTests.test_case_03_favorite_create_folder_boundary)
+[Favorite] 边界测试：创建收藏夹（名称长度、特殊字符） ... FAIL
+test_case_04_favorite_add_item_permission (interaction.tests_comprehensive.ComprehensiveInteractionTests.test_case_04_favorite_add_item_permission)
+[Favorite] 权限测试：不能向他人收藏夹添加内容 ... ok
+test_case_05_favorite_duplicate_prevention_logic (interaction.tests_comprehensive.ComprehensiveInteractionTests.test_case_05_favorite_duplicate_prevention_logic)
+[Favorite] 业务逻辑：重复收藏校验 (allow_duplicates=False) ... ok
+test_case_06_folder_deletion_cascade (interaction.tests_comprehensive.ComprehensiveInteractionTests.test_case_06_folder_deletion_cascade)
+[Favorite] 数据完整性：删除收藏夹应级联删除其内项目 ... ERROR
+test_case_07_like_concurrency_simulation (interaction.tests_comprehensive.ComprehensiveInteractionTests.test_case_07_like_concurrency_simulation)
+[Like] 并发/重复操作模拟：短时间内多次请求不应导致数据异常 ... ok
+
+======================================================================
+ERROR: test_case_06_folder_deletion_cascade (interaction.tests_comprehensive.ComprehensiveInteractionTests.test_case_06_folder_deletion_cascade)
+[Favorite] 数据完整性：删除收藏夹应级联删除其内项目
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "H:\软件作业\DjangoBlog\interaction\tests_comprehensive.py", line 169, in test_case_06_folder_deletion_cascade
+    folder_id = response.json()['id']
+                ~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'id'
+
+======================================================================
+FAIL: test_case_03_favorite_create_folder_boundary (interaction.tests_comprehensive.ComprehensiveInteractionTests.test_case_03_favorite_create_folder_boundary)
+[Favorite] 边界测试：创建收藏夹（名称长度、特殊字符）
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "H:\软件作业\DjangoBlog\interaction\tests_comprehensive.py", line 89, in test_case_03_favorite_create_folder_boundary
+    self.assertEqual(response.status_code, 200)
+AssertionError: 400 != 200
+
+----------------------------------------------------------------------
+Ran 7 tests in 10.274s
+
+FAILED (failures=1, errors=1)
+Destroying test database for alias 'default' ('test_djangoblog')...
+
+  Applying sites.0002_alter_domain_unique... OK
+System check identified no issues (0 silenced).

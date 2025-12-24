@@ -136,6 +136,7 @@ class FavoriteFolder(models.Model):
     sort_order = models.IntegerField(
         _('sort order'),
         default=0,
+        blank=True,
         help_text=_('排序值，数字越小越靠前；置顶优先'))
     share_token = models.CharField(
         _('share token'),

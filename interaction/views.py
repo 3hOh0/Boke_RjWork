@@ -116,31 +116,45 @@ class MyFavoritesView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         actor = models.InteractionActor.for_user(request.user)
         
-        # 获取所有收藏夹
+        # Get all folders for sidebar
         folders = models.FavoriteFolder.objects.filter(owner=actor)
         
-        # 获取默认收藏夹中的文章（按添加时间倒序）
-        default_folder = folders.filter(name='默认收藏夹').first()
-        if not default_folder:
-            default_folder = models.FavoriteFolder.objects.create(
-                owner=actor,
-                name='默认收藏夹',
-                description='默认收藏夹'
-            )
-        
-        # 分页显示收藏文章
+        # Base query
         favorite_items = models.FavoriteItem.objects.filter(
             folder__owner=actor
-        ).select_related('article', 'folder').order_by('-created_time')
+        ).select_related('article', 'folder', 'article__category')
+
+        # Filter by Folder
+        folder_id = request.GET.get('folder_id')
+        if folder_id:
+            favorite_items = favorite_items.filter(folder_id=folder_id)
+
+        # Search (Title or Note)
+        query = request.GET.get('q')
+        if query:
+            favorite_items = favorite_items.filter(
+                Q(article__title__icontains=query) |
+                Q(note__icontains=query)
+            )
+
+        # Sorting
+        sort_by = request.GET.get('sort_by', 'created_time')
+        if sort_by == 'title':
+            favorite_items = favorite_items.order_by('article__title')
+        else:
+            # Default to newest first
+            favorite_items = favorite_items.order_by('-created_time')
         
-        paginator = Paginator(favorite_items, 20)
+        # Pagination
+        paginator = Paginator(favorite_items, 10)  # 10 items per page
         page_number = request.GET.get('page', 1)
         page_obj = paginator.get_page(page_number)
         
         context = {
             'folders': folders,
             'page_obj': page_obj,
-            'title': _('My Favorites')
+            'title': _('My Favorites'),
+            'current_folder_id': folder_id
         }
         return render(request, 'interaction/my_favorites.html', context)
 
@@ -264,6 +278,16 @@ class FavoriteFolderListView(InteractionActorMixin, View):
             folder.save()
             return JsonResponse({'id': folder.id, 'share_token': folder.share_token})
         return JsonResponse({'errors': form.errors}, status=400)
+
+class FavoriteFolderTogglePinView(LoginRequiredMixin, InteractionActorMixin, View):
+    """
+    Toggle the 'pinned' status of a folder.
+    """
+    def post(self, request: HttpRequest, folder_id: int, *args, **kwargs) -> HttpResponse:
+        folder = get_object_or_404(models.FavoriteFolder, pk=folder_id, owner=self.actor)
+        folder.pinned = not folder.pinned
+        folder.save(update_fields=['pinned'])
+        return redirect('interaction:dashboard')
 
 
 class FavoriteItemView(InteractionActorMixin, View):
@@ -541,7 +565,16 @@ class FavoriteShareView(View):
     template_name = 'interaction/folder_share.html'
 
     def get(self, request: HttpRequest, token: str, *args, **kwargs) -> HttpResponse:
-        folder = get_object_or_404(models.FavoriteFolder, share_token=token, is_public=True)
+        # Optimize query: prefetch items and their related articles to avoid N+1
+        folder = get_object_or_404(
+            models.FavoriteFolder.objects.prefetch_related(
+                'items',
+                'items__article',
+                'items__article__category'
+            ),
+            share_token=token,
+            is_public=True
+        )
         folder.mark_shared()
         return render(request, self.template_name, {'folder': folder})
 
@@ -635,10 +668,20 @@ class PublicFavoriteListView(View):
     template_name = 'interaction/public_folders.html'
 
     def get(self, request: HttpRequest, *args, **kwargs):
-        folders = models.FavoriteFolder.objects.filter(is_public=True).select_related('owner__user')[:50]
-        for folder in folders:
+        # Optimize query: select_related owner
+        qs = models.FavoriteFolder.objects.filter(is_public=True).select_related('owner__user').order_by('-updated_time')
+        
+        paginator = Paginator(qs, 5)  # 5 folders per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        for folder in page_obj:
             folder.share_url = build_share_url(request, folder.share_token)
-        return render(request, self.template_name, {'folders': folders})
+            
+        return render(request, self.template_name, {
+            'folders': page_obj,  # Pass page_obj as 'folders' to iterate in template
+            'page_obj': page_obj  # Also pass page_obj for pagination controls
+        })
 
 
 @method_decorator(csrf_exempt, name='dispatch')

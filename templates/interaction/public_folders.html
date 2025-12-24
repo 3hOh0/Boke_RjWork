@@ -3,115 +3,173 @@
 {% load static %}
 
 {% block header %}
-    <title>公开收藏夹</title>
+<title>公开收藏夹</title>
 {% endblock %}
 
 {% block compress_css %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% static 'interaction/css/interaction.css' %}">
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'interaction/css/interaction.css' %}">
+<link rel="stylesheet" href="{% static 'interaction/css/modern_minimal.css' %}">
 {% endblock %}
 
 {% block content %}
-    <div class="container py-5">
-        <div class="hero-panel mb-4">
-            <div>
-                <p class="badge text-bg-success mb-2">发现 · 分享</p>
-                <h1 class="mb-2">探索公开收藏夹</h1>
-                <p class="text-muted mb-0">看看大家在收藏什么灵感，顺手收藏到自己的收藏夹</p>
-            </div>
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-                <div class="chip-group">
-                    <input type="search" id="publicSearchInput" class="form-control" placeholder="按名称/描述搜索" style="min-width: 220px;">
-                    <select class="form-select" id="publicSortSelect">
-                        <option value="">默认排序</option>
-                        <option value="recent">最近更新</option>
-                        <option value="count">按文章数</option>
-                    </select>
-                    <span class="chip active">全部</span>
-                </div>
-                <a class="btn btn-primary" href="{% url 'interaction:dashboard' %}">管理我的收藏夹</a>
-            </div>
+<div class="container py-5">
+    <!-- Hero (Simplified as requested) -->
+    <div class="mb-5 border-bottom pb-4">
+        <h1 class="fw-bold display-6 mb-2">公开收藏夹</h1>
+        <p class="text-secondary lead mb-0">浏览他人分享的收藏夹，发现优质内容。</p>
+    </div>
+
+    <!-- Search/Filter Bar (kept functional but simplified style) -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div class="d-flex w-100 w-md-auto gap-2 flex-wrap flex-grow-1" style="max-width: 600px;">
+            <input type="search" id="publicSearchInput" class="form-control border-light bg-light"
+                placeholder="搜索收藏夹名称..." value="{{ request.GET.q|default:'' }}">
+            <select class="form-select border-light bg-light" id="publicSortSelect" style="width: auto;">
+                <option value="">默认排序</option>
+                <option value="recent">最近更新</option>
+                <option value="count">文章多到少</option>
+            </select>
+            <button class="btn btn-primary px-3" onclick="applyPublicFilters()">搜索</button>
         </div>
-        <div class="row">
-            {% for folder in folders %}
-                <div class="col-md-4 mb-4 public-card" data-name="{{ folder.name|lower }}" data-desc="{{ folder.description|default:''|lower }}" data-count="{{ folder.items.count }}" data-updated="{{ folder.updated_time|default:folder.created_time|date:'U' }}">
-                    <div class="card h-100 shadow-sm public-folder-card fade-in">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title mb-0">{{ folder.name }}</h5>
-                                <span class="badge bg-light text-dark">文章数 {{ folder.items.count }}</span>
-                            </div>
-                            <p class="card-text text-muted">{{ folder.description|default:'暂无描述' }}</p>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="avatar-dot"></span>
-                                <p class="small text-secondary mb-0">
-                                    {% if folder.owner.user %}
-                                        作者: {{ folder.owner.user.get_username }}
-                                    {% else %}
-                                        匿名用户
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card-footer d-flex justify-content-between align-items-center">
-                            <span class="badge text-bg-primary">公开</span>
-                            <a class="btn btn-sm btn-primary" href="{% url 'interaction:folder_share' folder.share_token %}">
-                                查看
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-info">
-                        还没有公开收藏夹。成为第一个分享的人吧！
-                    </div>
-                </div>
-            {% endfor %}
+        <div class="text-muted small">
+            共 {{ folders.paginator.count }} 个精选集
         </div>
     </div>
-{% endblock %}
 
-{% block compress_js %}
-    {{ block.super }}
-    <script>
-        (function () {
-            const searchInput = document.getElementById('publicSearchInput');
-            const sortSelect = document.getElementById('publicSortSelect');
-            const cards = Array.from(document.querySelectorAll('.public-card'));
-            const row = document.querySelector('.row');
+    <!-- Public Collections Grid -->
+    <div class="row g-4">
+        {% for folder in folders %}
+        <div class="col-md-6" data-public-folder>
+            <article class="collection-card h-100 shadow-hover">
+                <!-- Header: Name (Left) + Public Badge (Left with Name) vs Actions (Right) -->
+                <!-- User requested: Name (left), Badge (right) -->
+                <div class="collection-header">
+                    <h2 class="card-title-custom mb-0 text-truncate" title="{{ folder.name }}">
+                        <a href="{% url 'interaction:folder_share' folder.share_token %}"
+                            class="text-decoration-none text-dark stretched-link">
+                            {{ folder.name }}
+                        </a>
+                    </h2>
 
-            function applyFilterSort() {
-                const keyword = (searchInput && searchInput.value.toLowerCase()) || '';
-                const sort = sortSelect ? sortSelect.value : '';
-                const visible = [];
-                cards.forEach(card => {
-                    const name = card.getAttribute('data-name') || '';
-                    const desc = card.getAttribute('data-desc') || '';
-                    const match = !keyword || name.includes(keyword) || desc.includes(keyword);
-                    if (match) {
-                        card.classList.remove('d-none');
-                        visible.push(card);
-                    } else {
-                        card.classList.add('d-none');
-                    }
-                });
-                if (sort) {
-                    visible.sort((a, b) => {
-                        const aUpdated = Number(a.getAttribute('data-updated') || '0');
-                        const bUpdated = Number(b.getAttribute('data-updated') || '0');
-                        const aCount = Number(a.getAttribute('data-count') || '0');
-                        const bCount = Number(b.getAttribute('data-count') || '0');
-                        if (sort === 'recent') return bUpdated - aUpdated;
-                        if (sort === 'count') return bCount - aCount;
-                        return 0;
-                    });
-                    visible.forEach(card => row.appendChild(card));
-                }
-            }
+                    <div class="collection-actions position-relative z-index-10">
+                        <span
+                            class="badge bg-success bg-opacity-10 text-success rounded-pill fw-normal small me-2">公开</span>
+                        <button class="btn btn-link p-0 text-decoration-none small text-primary"
+                            onclick="event.stopPropagation(); copyToClipboard('{{ folder.share_url }}', this)">
+                            <i class="far fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
 
-            if (searchInput) searchInput.addEventListener('input', applyFilterSort);
-            if (sortSelect) sortSelect.addEventListener('change', applyFilterSort);
-        })();
-    </script>
+                <!-- Body: Description -->
+                <div class="collection-body">
+                    <p class="card-desc-custom description-truncate mb-0">
+                        {{ folder.description|default:'该收藏夹暂无描述。' }}
+                    </p>
+                </div>
+
+                <!-- Article List Preview (Read Only) -->
+                {% if folder.items.exists %}
+                <div class="article-preview-list mb-3">
+                    {% for item in folder.items.all|slice:":3" %}
+                    <div class="article-item">
+                        <div class="article-info">
+                            <span class="article-title-link text-truncate d-block text-dark">
+                                {{ item.article.title }}
+                            </span>
+                            <small class="text-muted extra-small">{{ item.created_time|date:"Y-m-d" }}</small>
+                        </div>
+                        <!-- No actions for public read-only -->
+                    </div>
+                    {% endfor %}
+
+                    {% if folder.items.count > 3 %}
+                    <div class="text-center mt-2 border-top pt-2">
+                        <span class="extra-small text-muted">还有 {{ folder.items.count|add:"-3" }} 篇...</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Meta Info (Bottom) -->
+                <div class="collection-meta border-top pt-3 w-100">
+                    <span><i class="far fa-file-alt me-1"></i>{{ folder.items.count }} 篇文章</span>
+                    <span><i class="far fa-eye me-1"></i>{{ folder.share_hits }} 次访问</span>
+                    <span class="ms-auto"><i class="far fa-clock me-1"></i>{{ folder.updated_time|timesince }}前更新</span>
+                </div>
+            </article>
+        </div>
+        {% empty %}
+        <div class="col-12 py-5 text-center">
+            <div class="empty-state-card">
+                <i class="far fa-folder-open fa-2x text-muted mb-3 opacity-50"></i>
+                <p class="text-muted">暂无公开收藏夹，敬请期待。</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    {% load nav_utils %}
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link border-0 shadow-sm rounded-circle mx-1"
+                    href="?{% url_replace page=page_obj.previous_page_number %}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <span class="page-link border-0 shadow-sm rounded-circle mx-1">{{ num }}</span>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <li class="page-item">
+                <a class="page-link border-0 shadow-sm rounded-circle mx-1" href="?{% url_replace page=num %}">
+                    {{ num }}
+                </a>
+                </li>
+                {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link border-0 shadow-sm rounded-circle mx-1"
+                        href="?{% url_replace page=page_obj.next_page_number %}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script>
+    function copyToClipboard(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>已复制';
+            btn.classList.add('text-success');
+            setTimeout(() => {
+                btn.innerHTML = original;
+                btn.classList.remove('text-success');
+            }, 2000);
+        });
+    }
+
+    function applyPublicFilters() {
+        const query = document.getElementById('publicSearchInput').value;
+        const sort = document.getElementById('publicSortSelect').value;
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (query) urlParams.set('q', query); else urlParams.delete('q');
+        if (sort) urlParams.set('sort', sort); else urlParams.delete('sort');
+        urlParams.delete('page');
+        window.location.search = urlParams.toString();
+    }
+</script>
 {% endblock %}

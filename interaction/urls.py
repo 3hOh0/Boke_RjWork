@@ -14,6 +14,7 @@ urlpatterns = [
     path('folders/<int:folder_id>/items/', views.FavoriteItemListView.as_view(), name='folder_items'),
     path('folders/<int:folder_id>/export/', views.FavoriteExportView.as_view(), name='folder_export'),
     path('batch/', views.FavoriteBatchActionView.as_view(), name='batch_action'),
+    path('folders/<int:folder_id>/pin/', views.FavoriteFolderTogglePinView.as_view(), name='folder_toggle_pin'),
     path('quick-save/', views.QuickFavoriteView.as_view(), name='quick_save'),
     path('share/<str:token>/', views.FavoriteShareView.as_view(), name='folder_share'),
     path('dashboard/', views.FavoriteDashboardView.as_view(), name='dashboard'),
