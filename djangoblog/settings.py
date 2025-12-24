@@ -14,7 +14,8 @@ import sys
 from pathlib import Path
 
 from django.utils.translation import gettext_lazy as _
-
+import pymysql
+pymysql.install_as_MySQLdb()
 
 def env_to_bool(env, default):
     str_val = os.environ.get(env)
@@ -63,6 +64,7 @@ INSTALLED_APPS = [
     'compressor',
     'djangoblog',
     'interaction',
+    'autosave',
 ]
 
 MIDDLEWARE = [
@@ -110,15 +112,17 @@ WSGI_APPLICATION = 'djangoblog.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DJANGO_MYSQL_DATABASE') or 'djangoblog',
-        'USER': os.environ.get('DJANGO_MYSQL_USER') or 'root',
-        'PASSWORD': os.environ.get('DJANGO_MYSQL_PASSWORD') or '123456',
-        'HOST': os.environ.get('DJANGO_MYSQL_HOST') or '127.0.0.1',
-        'PORT': int(
-            os.environ.get('DJANGO_MYSQL_PORT') or 3306),
+        'NAME': 'djangoblog',            # 数据库名
+        'USER': 'root',                  # 用户名
+        'PASSWORD': 'MyNewPassword123!', # 密码
+        'HOST': 'localhost',             # 数据库服务器
+        'PORT': '3306',                  # 端口
         'OPTIONS': {
-            'charset': 'utf8mb4'},
-    }}
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
