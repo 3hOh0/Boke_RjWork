@@ -1,7 +1,7 @@
 import logging
 import re
 from abc import abstractmethod
-
+from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -96,7 +96,8 @@ class Article(BaseModel):
         on_delete=models.CASCADE)
     article_order = models.IntegerField(
         _('order'), blank=False, null=False, default=0)
-    show_toc = models.BooleanField(_('show toc'), blank=False, null=False, default=False)
+    show_toc = models.BooleanField(
+        _('show toc'), blank=False, null=False, default=False)
     category = models.ForeignKey(
         'Category',
         verbose_name=_('category'),
@@ -326,14 +327,19 @@ class BlogSettings(models.Model):
         null=False,
         blank=False,
         default='')
-    article_sub_length = models.IntegerField(_('article sub length'), default=300)
-    sidebar_article_count = models.IntegerField(_('sidebar article count'), default=10)
-    sidebar_comment_count = models.IntegerField(_('sidebar comment count'), default=5)
-    article_comment_count = models.IntegerField(_('article comment count'), default=5)
+    article_sub_length = models.IntegerField(
+        _('article sub length'), default=300)
+    sidebar_article_count = models.IntegerField(
+        _('sidebar article count'), default=10)
+    sidebar_comment_count = models.IntegerField(
+        _('sidebar comment count'), default=5)
+    article_comment_count = models.IntegerField(
+        _('article comment count'), default=5)
     show_google_adsense = models.BooleanField(_('show adsense'), default=False)
     google_adsense_codes = models.TextField(
         _('adsense code'), max_length=2000, null=True, blank=True, default='')
-    open_site_comment = models.BooleanField(_('open site comment'), default=True)
+    open_site_comment = models.BooleanField(
+        _('open site comment'), default=True)
     global_header = models.TextField("公共头部", null=True, blank=True, default='')
     global_footer = models.TextField("公共尾部", null=True, blank=True, default='')
     beian_code = models.CharField(
