@@ -41,7 +41,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='articledraft',
             name='save_type',
-            field=models.CharField(choices=[('auto', 'auto'), ('manual', 'manual')], default='auto', max_length=10),
+            field=models.CharField(
+                choices=[('auto', 'auto'), ('manual', 'manual')], default='auto', max_length=10),
         ),
         migrations.AddField(
             model_name='articledraft',
