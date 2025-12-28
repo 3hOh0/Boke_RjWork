@@ -34,6 +34,11 @@
             <li class="menu-item">
                 <a href="{% url 'interaction:leaderboard_page' %}">点赞榜</a>
             </li>
+            {% if user.is_staff %}
+            <li class="menu-item">
+                <a href="{% url 'dashboard:index' %}">📊 统计仪表盘</a>
+            </li>
+            {% endif %}
         </ul>
     </div>
 </nav><!-- #site-navigation -->
