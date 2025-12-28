@@ -46,17 +46,30 @@ def get_trend(days=7):
     if cached:
         return cached
     since = timezone.now() - timedelta(days=days)
-    # 示例：按天统计 PV（假设 Article 有 views_log 表则替换）
+    # 使用 TruncDate 做按天聚合并补零，保证跨数据库和时区一致性
+    from django.db.models.functions import TruncDate
     rows = (
         Article.objects.filter(pub_time__gte=since)
-        .extra(select={"day": "date(pub_time)"})
+        .annotate(day=TruncDate("pub_time"))
         .values("day")
         .annotate(published_count=Count("id"))
         .order_by("day")
     )
-    data = list(rows)
-    cache.set(key, data, CACHE_TTL)
-    return data
+
+    data_map = {str(r["day"]): r["published_count"] for r in rows}
+    out = []
+    now = timezone.now()
+    try:
+        today = timezone.localtime(now).date()
+    except Exception:
+        today = now.date()
+    for i in range(days - 1, -1, -1):
+        d = today - timedelta(days=i)
+        s = str(d)
+        out.append({"day": s, "published_count": data_map.get(s, 0)})
+
+    cache.set(key, out, CACHE_TTL)
+    return out
 
 def get_top_articles(limit=10):
     key = f"dashboard:top_articles:{limit}"
@@ -111,16 +124,32 @@ def get_like_trend(days=7):
     if cached:
         return cached
     since = timezone.now() - timedelta(days=days)
+    # 使用 TruncDate 保证跨数据库兼容，并返回连续日期（缺失日期补零）
+    from django.db.models.functions import TruncDate
     rows = (
         Like.objects.filter(created_time__gte=since)
-        .extra(select={"day": "date(created_time)"})
+        .annotate(day=TruncDate("created_time"))
         .values("day")
         .annotate(like_count=Count("id"))
         .order_by("day")
     )
-    data = list(rows)
-    cache.set(key, data, CACHE_TTL)
-    return data
+    # 将查询结果映射为 {date_str: count}
+    data_map = {str(r["day"]): r["like_count"] for r in rows}
+
+    # 生成连续日期列表并补零（从 days-1 天前到今天）
+    out = []
+    now = timezone.now()
+    try:
+        today = timezone.localtime(now).date()
+    except Exception:
+        today = now.date()
+    for i in range(days - 1, -1, -1):
+        d = today - timedelta(days=i)
+        s = str(d)
+        out.append({"day": s, "like_count": data_map.get(s, 0)})
+
+    cache.set(key, out, CACHE_TTL)
+    return out
 
 def get_tag_distribution(limit=10):
     """获取标签分布统计"""
@@ -146,16 +175,29 @@ def get_favorite_trend(days=7):
     if cached:
         return cached
     since = timezone.now() - timedelta(days=days)
+    from django.db.models.functions import TruncDate
     rows = (
         FavoriteItem.objects.filter(created_time__gte=since)
-        .extra(select={"day": "date(created_time)"})
+        .annotate(day=TruncDate("created_time"))
         .values("day")
         .annotate(favorite_count=Count("id"))
         .order_by("day")
     )
-    data = list(rows)
-    cache.set(key, data, CACHE_TTL)
-    return data
+    data_map = {str(r["day"]): r["favorite_count"] for r in rows}
+
+    out = []
+    now = timezone.now()
+    try:
+        today = timezone.localtime(now).date()
+    except Exception:
+        today = now.date()
+    for i in range(days - 1, -1, -1):
+        d = today - timedelta(days=i)
+        s = str(d)
+        out.append({"day": s, "favorite_count": data_map.get(s, 0)})
+
+    cache.set(key, out, CACHE_TTL)
+    return out
 
 def get_comment_trend(days=7):
     """获取评论趋势统计"""
@@ -164,16 +206,29 @@ def get_comment_trend(days=7):
     if cached:
         return cached
     since = timezone.now() - timedelta(days=days)
+    from django.db.models.functions import TruncDate
     rows = (
         Comment.objects.filter(creation_time__gte=since)
-        .extra(select={"day": "date(creation_time)"})
+        .annotate(day=TruncDate("creation_time"))
         .values("day")
         .annotate(comment_count=Count("id"))
         .order_by("day")
     )
-    data = list(rows)
-    cache.set(key, data, CACHE_TTL)
-    return data
+    data_map = {str(r["day"]): r["comment_count"] for r in rows}
+
+    out = []
+    now = timezone.now()
+    try:
+        today = timezone.localtime(now).date()
+    except Exception:
+        today = now.date()
+    for i in range(days - 1, -1, -1):
+        d = today - timedelta(days=i)
+        s = str(d)
+        out.append({"day": s, "comment_count": data_map.get(s, 0)})
+
+    cache.set(key, out, CACHE_TTL)
+    return out
 
 def get_recent_activities(limit=20):
     """获取最近活动记录"""
